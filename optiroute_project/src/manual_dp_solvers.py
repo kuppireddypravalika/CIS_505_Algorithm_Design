@@ -41,12 +41,13 @@ def solve_tsp_dp_recursive(distance_matrix, depot_index=0):
     route = get_path()
     return [route], total_cost
 
-
 def solve_tsp_dp_iterative(distance_matrix, depot_index=0):
     import math
 
     n = len(distance_matrix)
     dp = [[math.inf] * n for _ in range(1 << n)]
+    parent = [[-1] * n for _ in range(1 << n)]  # For path reconstruction
+
     dp[1 << depot_index][depot_index] = 0
 
     for mask in range(1 << n):
@@ -57,27 +58,32 @@ def solve_tsp_dp_iterative(distance_matrix, depot_index=0):
                 if mask & (1 << v) or u == v:
                     continue
                 new_mask = mask | (1 << v)
-                dp[new_mask][v] = min(dp[new_mask][v], dp[mask][u] + distance_matrix[u][v])
+                new_cost = dp[mask][u] + distance_matrix[u][v]
+                if new_cost < dp[new_mask][v]:
+                    dp[new_mask][v] = new_cost
+                    parent[new_mask][v] = u
 
+    # Reconstruct path
+    full_mask = (1 << n) - 1
     min_cost = math.inf
     last_city = -1
+
     for i in range(n):
-        cost = dp[(1 << n) - 1][i] + distance_matrix[i][depot_index]
+        cost = dp[full_mask][i] + distance_matrix[i][depot_index]
         if cost < min_cost:
             min_cost = cost
             last_city = i
 
-    mask = (1 << n) - 1
-    path = [last_city]
-    while mask != (1 << depot_index):
-        for j in range(n):
-            if j != last_city and (mask & (1 << j)):
-                prev_mask = mask ^ (1 << last_city)
-                if dp[mask][last_city] == dp[prev_mask][j] + distance_matrix[j][last_city]:
-                    path.append(j)
-                    mask = prev_mask
-                    last_city = j
-                    break
+    path = [depot_index]  # Start from depot
+    mask = full_mask
+    current_city = last_city
+
+    while current_city != depot_index:
+        path.append(current_city)
+        prev_city = parent[mask][current_city]
+        mask = mask ^ (1 << current_city)
+        current_city = prev_city
+
     path.append(depot_index)
     path.reverse()
     return [path], min_cost

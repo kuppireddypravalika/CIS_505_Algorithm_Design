@@ -1,120 +1,164 @@
-# OptiRoute – Efficient Vehicle Routing with Exact & Heuristic Algorithms
 
-This project provides a prototype for solving Vehicle Routing Problems (VRP) using both exact (Google OR-Tools) and heuristic (Nearest Neighbor + 2-Opt) algorithms. The goal is to find optimal delivery routes for a fleet of vehicles from a central depot to multiple customer locations, minimizing total distance or travel time.
+#  OptiRoute – Solving the Traveling Salesman Problem (TSP)
 
-## Project Structure
+**OptiRoute** is a Python-based project that provides multiple algorithms to solve the **Traveling Salesman Problem (TSP)** using real or synthetic geolocation data. The project supports **interactive route visualization**, **performance benchmarking**, and **flexible data input**.
+
+---
+
+##  Features
+
+- Load locations from a CSV or use default coordinates
+- Compute real-world distance matrices (via `geopy`)
+- Solve TSP using multiple algorithms:
+  - Nearest Neighbor + 2-Opt Heuristic
+  - Dynamic Programming (Recursive & Iterative Held-Karp)
+  - Backtracking (DFS with pruning)
+  - Branch and Bound (Best-First Search with bounding)
+- Visualize routes on interactive maps using Folium
+- Benchmark algorithms by runtime and memory usage
+
+---
+
+## 📁 Project Structure
 
 ```
 optiroute_project/
-├── data/                 # Placeholder for data files (e.g., customer locations CSV)
-├── notebooks/            # Placeholder for Jupyter notebooks for analysis or experimentation
-├── src/                  # Source code for the OptiRoute project
-│   ├── __init__.py       # Makes `src` a Python package
-│   ├── data_handler.py   # Handles data loading and distance matrix computation
-│   ├── solvers.py        # Contains OR-Tools and heuristic VRP solvers
-│   └── visualization.py  # Handles route visualization using Folium
-├── main.py               # Main script to run the VRP solvers and generate visualizations
-└── requirements.txt      # Lists Python dependencies
+├── data/                   # CSV files for location input
+├── output/                 # Benchmark results and HTML maps
+├── src/                    # Source code
+│   ├── data_handler.py     # CSV loading and distance matrix computation
+│   ├── manual_heuristic_solver.py
+│   ├── manual_dp_solvers.py
+│   ├── manual_bt_solver.py
+│   ├── manual_bb_solver.py
+│   ├── visualization.py    # Folium map generator
+│   └── benchmark_utils.py  # Time and memory measurement wrapper
+├── main.py                 # Interactive CLI runner for TSP solvers
+├── benchmark_runner.py     # Automated benchmarking for time/memory
+└── requirements.txt        # Dependencies
 ```
 
-## Setup Instructions
+---
 
-To set up and run this project, follow these steps:
+##  Setup Instructions
 
-1.  **Navigate to the project directory:**
+1. **Clone and navigate to the project:**
+   ```bash
+   git clone <repo_url>
+   cd optiroute_project
+   ```
 
-    ```bash
-    cd optiroute_project
-    ```
+2. **Create and activate a virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate      # On Windows: venv\Scripts\activate
+   ```
 
-2.  **Install dependencies:**
+3. **Install required packages:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-    It is highly recommended to use a virtual environment to manage project dependencies. If you don't have `venv` installed, you might need to install it first (`sudo apt-get install python3.11-venv` on Ubuntu).
+---
 
-    ```bash
-    python3.11 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
+## Running the Project
 
-    If you are on Windows, use `venv\Scripts\activate` instead of `source venv/bin/activate`.
-
-## How to Run the Project
-
-After setting up the environment and installing dependencies, you can run the main script:
-
+### Interactive Mode (Visual + Prompted)
 ```bash
 python main.py
 ```
 
-This script will:
-*   Load dummy location data (or from a CSV if specified).
-*   Compute the distance matrix between locations.
-*   Solve the VRP using Google OR-Tools (exact solver).
-*   Solve the VRP using the Nearest Neighbor + 2-Opt heuristic solver.
-*   Generate interactive HTML maps (`ortools_routes.html` and `heuristic_routes.html`) in the project root directory, visualizing the routes found by each solver.
-*   Print the total distance for the routes found by each solver to the console.
+You’ll be prompted to:
+- Choose a CSV file or use default coordinates
+- Select how many locations to use
+- Choose an algorithm
 
-## Making Changes and Customization
+It will then:
+- Solve the TSP
+- Print distance and route
+- Save an interactive HTML map (e.g., `dp_iter_routes.html`)
 
-### Data Input (`src/data_handler.py`)
+---
 
-The `load_data` function currently uses hardcoded example coordinates. To use your own data:
+##  Benchmarking Multiple Algorithms
 
-1.  **Prepare your data:** Create a CSV file (e.g., `my_locations.csv`) with at least `latitude` and `longitude` columns. You can place this file in the `data/` directory.
+To test all algorithms across different input sizes and save performance metrics:
 
-    Example `my_locations.csv`:
-    ```csv
-    latitude,longitude
-    34.0522,-118.2437
-    34.0550,-118.2500
-    34.0600,-118.2400
-    34.0400,-118.2600
-    ```
-
-2.  **Update `main.py`:** Modify the `main.py` file to point to your CSV file:
-
-    ```python
-    # In main.py
-    locations = load_data(filepath="data/my_locations.csv") # Update this line
-    ```
-
-### Solver Parameters (`main.py`)
-
-You can adjust parameters like the number of vehicles or the depot index in `main.py`:
-
-```python
-# In main.py
-num_vehicles = 2 # Change this to the desired number of vehicles
-depot_index = 0  # Change this if your depot is at a different index in your locations list
+```bash
+python benchmark_runner.py
 ```
 
-### Heuristic Algorithm (`src/solvers.py`)
+This will:
+- Run all algorithms on input sizes (e.g., 5, 10, 15, all)
+- Record execution time, memory usage, and route distance
+- Save results to:
+  ```
+  output/benchmark_results.csv
+  ```
 
-The `two_opt` function implements a basic 2-Opt local search. For more advanced heuristics or different initial tour constructions, you would modify `src/solvers.py`.
+> Optional: Enable route maps for each run inside `benchmark_runner.py`.
 
-### Visualization (`src/visualization.py`)
+---
 
-To customize the map visualization (e.g., colors, markers, popups), edit `src/visualization.py`.
+##  Algorithm Overview
 
-## Expected Output
+| Algorithm       | Type      | Optimal? | Time Complexity      | Space Complexity | Notes |
+|----------------|-----------|----------|----------------------|------------------|-------|
+| Heuristic (NN + 2-Opt) | Approximate | ❌ | O(n²) + O(n² * passes) | O(n) | Fast, scalable |
+| DP Recursive    | Exact     | ✅ | O(n² * 2ⁿ)             | O(n * 2ⁿ)         | Held-Karp, top-down |
+| DP Iterative    | Exact     | ✅ | O(n² * 2ⁿ)             | O(n * 2ⁿ)         | Bottom-up Held-Karp |
+| Backtracking    | Exact     | ✅ | O(n!)                  | O(n)              | DFS + pruning |
+| Branch & Bound  | Exact     | ✅ | ≤ O(n!) (varies)       | O(n²)             | Best-First + bounds |
 
-Upon successful execution, you will see console output similar to this:
+---
 
+##  Benchmark Example
+
+Sample CSV output from `benchmark_runner.py`:
+
+```csv
+algorithm,num_locations,distance_km,time_sec,memory_kb
+heuristic,10,132.5,0.0021,24.3
+dp_rec,10,132.5,0.3112,210.0
+dp_iter,10,132.5,0.0148,180.3
+bt,10,132.5,4.204,234.6
+bb,10,132.5,0.8823,154.7
 ```
-Loading data...
 
-Solving with OR-Tools...
-OR-Tools Total Distance: XX.XX km
-  Vehicle 1 Route: [0, 2, 1, 3, 0]
-Map saved to ortools_routes.html
+---
 
-Solving with Heuristic (Nearest Neighbor + 2-Opt)...
-Heuristic Total Distance: YY.YY km
-  Vehicle 1 Route: [0, 1, 2, 3, 0]
-Map saved to heuristic_routes.html
+## Input Format
+
+CSV must contain:
+```csv
+latitude,longitude
+34.0522,-118.2437
+34.0600,-118.2500
+...
 ```
 
-Two HTML files (`ortools_routes.html` and `heuristic_routes.html`) will be generated in the `optiroute_project` directory. Open these files in a web browser to view the interactive maps with the calculated routes.
+- The first point is the **depot** (starting and ending node).
+- Use `generate_synthetic_coords.py` to create test data if needed.
 
+---
 
+##  Visual Output
+
+Each route is saved as an interactive HTML map. Example:
+```
+Route 1: [0, 3, 1, 2, 4, 0]
+Distance: 12.76 km
+Map saved to dp_iter_routes.html
+```
+
+Open in browser to explore.
+
+---
+
+##  Extending the Project
+
+You can:
+- Add more heuristics (e.g., Christofides, Genetic Algorithm)
+- Visualize benchmarking results via Matplotlib
+- Benchmark scalability (10–50 nodes)
+- Replace air distances with road network using OSMnx
