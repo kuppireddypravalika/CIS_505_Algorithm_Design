@@ -7,11 +7,9 @@ def solve_tsp_dp_recursive(distance_matrix, depot_index=0):
     def tsp(pos, visited):
         if visited == (1 << n) - 1:
             return distance_matrix[pos][depot_index]
-
         key = (pos, visited)
         if key in memo:
             return memo[key]
-
         min_cost = math.inf
         for city in range(n):
             if not (visited >> city) & 1:
@@ -61,7 +59,6 @@ def solve_tsp_dp_iterative(distance_matrix, depot_index=0):
                 new_mask = mask | (1 << v)
                 dp[new_mask][v] = min(dp[new_mask][v], dp[mask][u] + distance_matrix[u][v])
 
-    # Reconstruct minimum cost
     min_cost = math.inf
     last_city = -1
     for i in range(n):
@@ -70,7 +67,6 @@ def solve_tsp_dp_iterative(distance_matrix, depot_index=0):
             min_cost = cost
             last_city = i
 
-    # Reconstruct path (not optimal, but sufficient)
     mask = (1 << n) - 1
     path = [last_city]
     while mask != (1 << depot_index):
