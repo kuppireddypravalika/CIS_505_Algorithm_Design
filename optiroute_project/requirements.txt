@@ -1,6 +1,0 @@
-ortools
-geopy
-pandas
-folium
-
-
